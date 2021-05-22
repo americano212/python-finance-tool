@@ -84,7 +84,8 @@ def main():
     profit = 0
     for idx in range(len(Stock_Code)):
         profit+=expected_profit[idx]*weight_fix[idx]
-    print("수익률 : {0}%".format(round(profit,2)))
-    
+    print("기대 수익률 : {0}%".format(round(profit,2)))
+
+    print(Change_df.corr())
 if __name__ == '__main__':
     main()
