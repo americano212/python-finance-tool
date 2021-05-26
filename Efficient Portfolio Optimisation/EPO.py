@@ -46,34 +46,28 @@ def Get_Stock_Change(One_Stock_Data_Close):
 
 def BackTesting():
     pass
-
-def main():
-    get_stock_code()
-    get_dcf_data()
-    for info in Stock_Code:
-        Get_Stock_Data(info,start_ymd)
-    for data in Stock_Data_Close:
-        Get_Stock_Change(data)
-
-    expected_profit = []
-    for idx in range(len(Stock_Code)):
-        expected_profit.append((DCF_Result[idx]-Stock_Data_Close_Today[idx])/Stock_Data_Close_Today[idx])
+def Make_min_var_PF():
     Change_df = pd.concat(Change_list,axis=1)
     Change_df.columns = Stock_Name
-
     Change_avg = Change_df.mean()
-    print(Change_df)
+    Change_df = Change_df+0.00001*np.random.rand(Change_df.shape[0],Change_df.shape[1])
     Change_cov = Change_df.cov()
     Change_cov_inv = pd.DataFrame(np.matrix(Change_cov).I,Change_cov.columns,Change_cov.index)
     ones = np.ones(Change_cov_inv.shape[1])
-
     weight = (Change_cov@ones)/(ones.T@Change_cov@ones)
     print("="*50)
     print("Minimum Variance Portfolio")
     print(weight*100)
     #print(weight.T@Change_cov@weight)
 
-
+def Make_max_sr_PF():
+    Change_df = pd.concat(Change_list,axis=1)
+    Change_df.columns = Stock_Name
+    Change_avg = Change_df.mean()
+    Change_df = Change_df+0.00001*np.random.rand(Change_df.shape[0],Change_df.shape[1])
+    Change_cov = Change_df.cov()
+    Change_cov_inv = pd.DataFrame(np.matrix(Change_cov).I,Change_cov.columns,Change_cov.index)
+    ones = np.ones(Change_cov_inv.shape[1])
     weight=(Change_cov@Change_avg)/(ones.T@Change_cov_inv@Change_avg)
     print("="*50)
     print("Tangent (Max Sharp ratio) Portfolio")
@@ -85,6 +79,21 @@ def main():
     for idx in range(len(Stock_Code)):
         profit+=expected_profit[idx]*weight_fix[idx]
     print("기대 수익률 : {0}%".format(round(profit,2)))
+    print(Change_df.corr())
+def main():
+    get_stock_code()
+    get_dcf_data()
+    for info in Stock_Code:
+        Get_Stock_Data(info,start_ymd)
+    for data in Stock_Data_Close:
+        Get_Stock_Change(data)
+
+    expected_profit = []
+    for idx in range(len(Stock_Code)):
+        expected_profit.append((DCF_Result[idx]-Stock_Data_Close_Today[idx])/Stock_Data_Close_Today[idx])
+
+
+    Make_max_sr_PF()
 
     print(Change_df.corr())
 if __name__ == '__main__':
