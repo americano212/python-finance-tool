@@ -5,6 +5,10 @@ import yfinance as yf
 import numpy as np
 from pykiwoom.kiwoom import *
 yf.pdr_override()
+from statsmodels import regression
+import statsmodels.api as sm
+import seaborn as sns
+from statsmodels.formula.api import ols
 
 Stock_Code = []
 Stock_Data_Close = []
@@ -102,6 +106,7 @@ def Make_min_var_PF():
     Change_avg = Change_df.mean()
     Change_df = Change_df+0.00001*np.random.rand(Change_df.shape[0],Change_df.shape[1])
     Change_cov = Change_df.cov()
+
     Change_cov_inv = pd.DataFrame(np.matrix(Change_cov).I,Change_cov.columns,Change_cov.index)
     ones = np.ones(Change_cov_inv.shape[1])
     weight = (Change_cov@ones)/(ones.T@Change_cov@ones)
@@ -119,6 +124,15 @@ def Make_MaxSharpeRatio_PF():
     Change_df = Change_df+0.00001*np.random.rand(Change_df.shape[0],Change_df.shape[1])
     #Covariance matrix와 그의 Inverse matrix
     Change_cov = Change_df.cov()
+    f = plt.figure(figsize=(19, 15))
+    plt.matshow(Change_cov, fignum=f.number)
+    plt.xticks(range(Change_df.select_dtypes(['number']).shape[1]), Change_df.select_dtypes(['number']).columns, fontsize=14, rotation=45)
+    plt.yticks(range(Change_df.select_dtypes(['number']).shape[1]), Change_df.select_dtypes(['number']).columns, fontsize=14)
+    cb = plt.colorbar()
+    cb.ax.tick_params(labelsize=14)
+    plt.title('Covariance Matrix', fontsize=16);
+    plt.show()
+
     Change_cov_inv = pd.DataFrame(np.matrix(Change_cov).I,Change_cov.columns,Change_cov.index)
     # 1로 구성된 행렬 생성
     ones = np.ones(Change_cov_inv.shape[1])
@@ -139,6 +153,15 @@ def Make_MaxSharpeRatio_PF():
         profit+=expected_profit[idx]*weight_fix[idx]
     print("기대 수익률 : {0}%".format(round(profit,2)))
     print(Change_df.corr())
+    f = plt.figure(figsize=(19, 15))
+    plt.matshow(Change_df.corr(), fignum=f.number)
+    plt.xticks(range(Change_df.select_dtypes(['number']).shape[1]), Change_df.select_dtypes(['number']).columns, fontsize=14, rotation=45)
+    plt.yticks(range(Change_df.select_dtypes(['number']).shape[1]), Change_df.select_dtypes(['number']).columns, fontsize=14)
+    cb = plt.colorbar()
+    cb.ax.tick_params(labelsize=14)
+    plt.title('Correlation Matrix', fontsize=16);
+    plt.show()
+
 
 def make_pie_chart():
     ratio = list(np.array(weight_save))
@@ -154,31 +177,56 @@ def Compare_Market():
     for info in Stock_Code:
         if (info[0]!='E'):
             Get_Stock_Data(info,'2021-01-01',flag=1)
+    S = []
+    K = []
     data_fix = []
     for data in BackTesting_Data_Close:
-        data_fix.append((data/data[data.index[0]])*100)
-    data_fix_2 = (ratio@np.matrix(pd.DataFrame(data_fix))).tolist()[0]
+        data_fix.append(((data.pct_change(1)+1).cumprod()).fillna(1))
+        S.append(data.pct_change())
+    S = ((ratio@np.matrix(pd.DataFrame(S)))).tolist()[0]
+
+    data_fix_2 = (ratio@np.matrix(pd.DataFrame(data_fix)-1)).tolist()[0]
     get_pdr = pdr.get_data_yahoo('069500.KS',start='2021-01-01')
     kdx = list(get_pdr['Close'])
+    K = get_pdr['Close'].pct_change()
     idx = get_pdr.index
     SWIC_ETF = []
     KODEX_ETF = []
     for data in data_fix_2:
-        SWIC_ETF.append(data*100/data_fix_2[0])
+        SWIC_ETF.append(data)
     for data in kdx:
-        KODEX_ETF.append(data*100/kdx[0])
+        KODEX_ETF.append(data*100/kdx[0]-100)
     SWIC_ETF = pd.Series(SWIC_ETF)
     SWIC_ETF.index = idx
     KODEX_ETF = pd.Series(KODEX_ETF)
     KODEX_ETF.index = idx
-    plt.plot(SWIC_ETF,'b',label='SWIC_ETF')
+    plt.plot(SWIC_ETF,'b',label='ESG_Active_Fund')
     plt.plot(KODEX_ETF,'r--',label='KODEX 200')
     plt.ylabel('Change')
     #ax.set_yticklabels([])
     plt.grid(True)
     plt.legend(loc='best')
     plt.show()
+    S = pd.Series(S)
+    print(S)
+    print("Sharpe Ratio는 {0}".format(SWIC_ETF.mean()/SWIC_ETF.std()))
+    print("Sharpe Ratio는 {0}".format(S.mean()/S.std()))
+    print(S,K)
 
+
+    S.index = idx
+    K=K*100
+    df = pd.concat([S,K],axis=1)
+    df.columns = ['ESG_Active_Fund','KODEX']
+    df = df.dropna()
+    print(df.head())
+    with plt.style.context('seaborn'):
+        sns.jointplot('ESG_Active_Fund','KODEX',data=df,kind='reg')
+    plt.show()
+    daily_ols = ols('ESG_Active_Fund~1+KODEX',data=df).fit()
+    print(daily_ols.summary())
+    print(SWIC_ETF.mean()/0.7838)
+    print(S.mean()/0.7838)
 def Login_kiwoom():
     kiwoom = Kiwoom()
     kiwoom.CommConnect(block=True)
