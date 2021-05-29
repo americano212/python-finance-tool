@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 import numpy as np
 from pykiwoom.kiwoom import *
-yf.pdr_override()
 from statsmodels import regression
 import statsmodels.api as sm
 import seaborn as sns
 from statsmodels.formula.api import ols
+yf.pdr_override()
 
 Stock_Code = []
 Stock_Data_Close = []
@@ -131,7 +131,7 @@ def Make_MaxSharpeRatio_PF():
     cb = plt.colorbar()
     cb.ax.tick_params(labelsize=14)
     plt.title('Covariance Matrix', fontsize=16);
-    plt.show()
+    #plt.show()
 
     Change_cov_inv = pd.DataFrame(np.matrix(Change_cov).I,Change_cov.columns,Change_cov.index)
     # 1로 구성된 행렬 생성
@@ -196,7 +196,11 @@ def Compare_Market():
         SWIC_ETF.append(data)
     for data in kdx:
         KODEX_ETF.append(data*100/kdx[0]-100)
-    SWIC_ETF = pd.Series(SWIC_ETF)
+    if (len(SWIC_ETF)!=len(idx)):
+        SWIC_ETF = pd.Series(SWIC_ETF)[:-1]
+    else:
+        SWIC_ETF = pd.Series(SWIC_ETF)
+
     SWIC_ETF.index = idx
     KODEX_ETF = pd.Series(KODEX_ETF)
     KODEX_ETF.index = idx
@@ -207,12 +211,12 @@ def Compare_Market():
     plt.grid(True)
     plt.legend(loc='best')
     plt.show()
-    S = pd.Series(S)
-    print(S)
+    if (len(S)!=len(idx)):
+        S = pd.Series(S)[:-1]
+    else:
+        S = pd.Series(S)
     print("Sharpe Ratio는 {0}".format(SWIC_ETF.mean()/SWIC_ETF.std()))
-    print("Sharpe Ratio는 {0}".format(S.mean()/S.std()))
-    print(S,K)
-
+    #print("Sharpe Ratio는 {0}".format(S.mean()/S.std()))
 
     S.index = idx
     K=K*100
@@ -225,8 +229,8 @@ def Compare_Market():
     plt.show()
     daily_ols = ols('ESG_Active_Fund~1+KODEX',data=df).fit()
     print(daily_ols.summary())
-    print(SWIC_ETF.mean()/0.7838)
-    print(S.mean()/0.7838)
+    #print(SWIC_ETF.mean()/0.7838)
+    #print(S.mean()/0.7838)
 def Login_kiwoom():
     kiwoom = Kiwoom()
     kiwoom.CommConnect(block=True)
@@ -249,7 +253,7 @@ def main():
         expected_profit.append((DCF_Result[idx]-Stock_Data_Close_Today[idx])/Stock_Data_Close_Today[idx])
 
     Make_MaxSharpeRatio_PF()
-    #make_pie_chart()
+    make_pie_chart()
 
     Compare_Market()
 
