@@ -40,17 +40,29 @@ DCF Result를 바탕으로 각 종목의 Correlation, Covariance를 Matrix 형�
 
 > pandas | pandas_datareader 
 >
-> matplotlib
->
-> yfinance
->
-> numpy
+> matplotlib | numpy | yfinance
 >
 > pykiwoom
 >
-> statsmodels
->
-> seaborn
+> statsmodels | seaborn
 
 
+
+#### Kiwoom API
+
+키움증권에서 제공하는 API를 사용하기 위한 툴들로 PyQt를 쓸 때와 안쓸 때를 구분한다.
+
+
+
+#### Finance Data Operation Tool
+
+numpy, matplotlib, pandas 등 데이터 조작에 필요한 툴들의 기본 문법 연습과 결과 들을 포함한다.
+
+
+
+#### Get Data Other Theme
+
+주가 데이터(국내, 해외)들을 테마별로 정리하고 받아오는 Tool을 만들었다.
+
+------
 
