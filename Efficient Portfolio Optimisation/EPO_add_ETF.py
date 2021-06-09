@@ -173,7 +173,7 @@ def make_pie_chart():
     plt.show()
 
 def Compare_Market():
-    ratio = np.array(weight_save)[:-2]
+    ratio = np.array(weight_save)
     for info in Stock_Code:
         if (info[0]!='E'):
             Get_Stock_Data(info,'2021-01-01',flag=1)
@@ -183,6 +183,7 @@ def Compare_Market():
     for data in BackTesting_Data_Close:
         data_fix.append(((data.pct_change(1)+1).cumprod()).fillna(1))
         S.append(data.pct_change())
+    print(S)
     S = ((ratio@np.matrix(pd.DataFrame(S)))).tolist()[0]
 
     data_fix_2 = (ratio@np.matrix(pd.DataFrame(data_fix)-1)).tolist()[0]
@@ -253,7 +254,7 @@ def main():
         expected_profit.append((DCF_Result[idx]-Stock_Data_Close_Today[idx])/Stock_Data_Close_Today[idx])
 
     Make_MaxSharpeRatio_PF()
-    make_pie_chart()
+    #make_pie_chart()
 
     Compare_Market()
 
