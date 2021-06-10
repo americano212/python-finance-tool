@@ -1,5 +1,5 @@
 from pykiwoom.kiwoom import *
-
+import pprint
 kiwoom = Kiwoom()
 kiwoom.CommConnect(block=True)
 print("블록킹 로그인 완료")
@@ -23,6 +23,8 @@ stock_account = accounts[0]
 
 # 삼성전자, 10주, 시장가주문 매수
 #kiwoom.SendOrder("시장가매수", "0101", stock_account, 1, "005930", 10, 0, "03", "")
+# 삼성전자, 10주, 시장가주문 매도
+#kiwoom.SendOrder("시장가매도", "0101", stock_account, 2, "005930", 10, 0, "03", "")
 kospi = kiwoom.GetCodeListByMarket('0')
 kosdaq = kiwoom.GetCodeListByMarket('10')
 etf = kiwoom.GetCodeListByMarket('8')
@@ -31,3 +33,18 @@ print(len(kosdaq))
 print(len(etf))
 name = kiwoom.GetMasterCodeName("005930")
 print(name)
+
+
+state = kiwoom.GetConnectState()
+if state == 0:
+    print("미연결")
+elif state == 1:
+    print("연결완료")
+
+stock_cnt = kiwoom.GetMasterListedStockCnt("005930")
+print("삼성전자 상장주식수: ", stock_cnt)
+
+check = kiwoom.GetMasterConstruction("005930")
+print(check)
+group = kiwoom.GetThemeGroupList(1)
+#pprint.pprint(group)
